@@ -2,23 +2,42 @@ import React from 'react'
 import SearchBar from './SearchBar'
 import youtube from '../apis/youtube.js'
 import VideoList from './VideoList.js'
+import VideoDetail from './VideoDetail.js'
+
+const KEY = 'AIzaSyDKj2eslJIKpSGCNlIUh_bsrzrWkxkfVjc';
+
 
 class App extends React.Component {
 
-    state = {videos: [] }
+    state = {videos: [], selectedVideo: null }
+
+    componentDidMount() {
+        this.onTermSubmit('Sacramento Kings')
+    }
 
     onTermSubmit = async (term) => {
        const response = await youtube.get('/search', {
             params: {
-                q: term
+                q: term,
+                part: 'snippet',
+                type: 'video',
+                maxResults: 5, 
+                key: KEY 
             }
+            
+        })
+        this.setState({
+            videos: response.data.items, 
+            selectedVideo: response.data.items[0]
         })
 
+    }
+
+    onVideoSelect = (video) => {
 
         this.setState({
-            videos: response.data.items
+            selectedVideo: video
         })
-
     }
   
 
@@ -26,7 +45,17 @@ class App extends React.Component {
         return (
             <div className="ui container">
                 <SearchBar onFormSubmit={this.onTermSubmit}/>
-                <VideoList videos={this.state.videos}/>
+                <div className="ui grid">
+                    <div className="ui row">
+                        <div className="eleven wide column" >
+                <VideoDetail video={this.state.selectedVideo} />
+                        </div>
+                        <div className="five wide column" >
+
+                <VideoList onVideoSelect={this.onVideoSelect} videos={this.state.videos}/>
+                        </div>
+                    </div>
+                </div>
                 {/* I have {this.state.videos.length} videos */}
                 </div>
         )
